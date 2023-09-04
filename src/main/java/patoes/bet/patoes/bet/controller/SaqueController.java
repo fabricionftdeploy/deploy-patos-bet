@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import patoes.bet.patoes.bet.dto.request.SaqueRequestDTO;
+import patoes.bet.patoes.bet.model.SaqueModel;
 import patoes.bet.patoes.bet.service.SaqueService;
 
 @RestController
@@ -15,12 +16,12 @@ public class SaqueController {
     private SaqueService saqueService;
 
     @GetMapping
-    public ResponseEntity<?> listarSaques(@RequestBody SaqueRequestDTO saqueRequest){
+    public ResponseEntity<?> listarSaques(){
         return new ResponseEntity<>(saqueService.listarSaques(), HttpStatus.OK);
     }
 
     @GetMapping(path = "/usuario/{codigoUsuario}")
-    public ResponseEntity<?> listarSaques(@PathVariable Long codigoUsuario){
+    public ResponseEntity<?> listarSaquesPorCodigoDeUsuario(@PathVariable Long codigoUsuario){
         return new ResponseEntity<>(saqueService.listarDaquesPorCodigoDeUsuario(codigoUsuario), HttpStatus.OK);
     }
 
@@ -31,6 +32,16 @@ public class SaqueController {
 
     @PostMapping
     public ResponseEntity<?> solicitarSaque(@RequestBody SaqueRequestDTO saqueRequest){
-        return new ResponseEntity<>(saqueService.solicitarSaque(saqueRequest), HttpStatus.OK);
+        return new ResponseEntity<>(saqueService.solicitarSaque(saqueRequest), HttpStatus.CREATED);
+    }
+
+    @PostMapping(path = "/autorizar")
+    public ResponseEntity<?> autorizarSaque(@RequestBody SaqueModel saque){
+        return new ResponseEntity<>(saqueService.autorizarSaque(saque), HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/recusar")
+    public ResponseEntity<?> recusarSaque(@RequestBody SaqueModel saque){
+        return new ResponseEntity<>(saqueService.recusarSaque(saque), HttpStatus.OK);
     }
 }

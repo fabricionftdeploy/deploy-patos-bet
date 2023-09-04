@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import patoes.bet.patoes.bet.dto.request.DepositoRequestDTO;
 import patoes.bet.patoes.bet.dto.response.UsuarioResponseDTO;
+import patoes.bet.patoes.bet.model.DepositoModel;
 import patoes.bet.patoes.bet.model.UsuarioModel;
 import patoes.bet.patoes.bet.service.DepositoService;
 
@@ -20,6 +21,12 @@ public class DepositoController {
     @Autowired
     private ModelMapper modelMapper;
 
+
+    @GetMapping
+    public ResponseEntity<?> listarDepositos(){
+        return new ResponseEntity<>(depositoService.listarDepositos(), HttpStatus.OK);
+    }
+
     @GetMapping(path = "/{codigo}")
     public ResponseEntity<?> buscarDepositoPorCodigo(@PathVariable Long codigo){
         return new ResponseEntity<>(depositoService.buscarDepositoPorCodigo(codigo), HttpStatus.OK);
@@ -27,7 +34,17 @@ public class DepositoController {
 
     @PostMapping
     public ResponseEntity<?> solicitarDeposito(@RequestBody DepositoRequestDTO depositoRequest){
-        return new ResponseEntity<>(converterEmUsuarioResponse(depositoService.depositar(depositoRequest)), HttpStatus.CREATED);
+        return new ResponseEntity<>(converterEmUsuarioResponse(depositoService.solicitarDeposito(depositoRequest)), HttpStatus.CREATED);
+    }
+
+    @PostMapping(path = "/autorizar")
+    public ResponseEntity<?> autorizarDeposito(@RequestBody DepositoModel deposito){
+        return new ResponseEntity<>(depositoService.autorizarDeposito(deposito), HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/recusar")
+    public ResponseEntity<?> recusarDeposito(@RequestBody DepositoModel deposito){
+        return new ResponseEntity<>(depositoService.recusarDeposito(deposito), HttpStatus.OK);
     }
 
     //Metódos privados

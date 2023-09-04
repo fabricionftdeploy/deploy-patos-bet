@@ -1,5 +1,6 @@
 package patoes.bet.patoes.bet.service;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import patoes.bet.patoes.bet.dto.request.BonusRequestDTO;
@@ -18,19 +19,20 @@ public class BonusService {
     @Autowired
     private BonusRepository bonusRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
+
     public List<BonusModel> listarBonus(){
         return  bonusRepository.findAll();
     }
 
+    public BonusModel buscarBonusPorCodigo(Long codigo){
+        return  bonusRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RequestException("Bônus inexistente!"));
+    }
+
     public BonusModel criarBonus(BonusRequestDTO bonusRequest){
-        Date data;
-
-        try {
-            data = new SimpleDateFormat("yyyy-MM-dd").parse(bonusRequest.getDataValidade());
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-
         BonusModel bonus = new BonusModel(
             null,
             gerarCodigoBonusSemRepeticao(),
@@ -38,8 +40,16 @@ public class BonusService {
             (bonusRequest.getTipo().equals("cadastro")) ? bonusRequest.getValorBonus() : 0,
             (bonusRequest.getTipo().equals("deposito")) ? bonusRequest.getPercentualBonus() : 0,
             bonusRequest.getMultiplicadorDeAuditoria(),
-            data
+            converterData(bonusRequest.getDataValidade())
         );
+
+        return bonusRepository.save(bonus);
+    }
+
+    public BonusModel editarBonus(BonusRequestDTO bonusRequest){
+        BonusModel bonus  = modelMapper.map(bonusRequest, BonusModel.class);
+        bonus.setCodigoBonus(buscarBonusPorCodigo(bonusRequest.getCodigo()).getCodigoBonus());
+        bonus.setDataValidade(converterData(bonusRequest.getDataValidade()));
 
         return bonusRepository.save(bonus);
     }
@@ -49,7 +59,29 @@ public class BonusService {
         return "Todos bonûs foram excluídos!";
     }
 
+    public String excluirBonusPorCodigo(Long codigo){
+        BonusModel bonus = buscarBonusPorCodigo(codigo);
+        bonusRepository.delete(bonus);
+        return "Bônus deletado com sucesso!";
+    }
+
+
     //Métodos privados
+    private Date converterData(String data){
+        Date dataConvertida;
+
+        try {
+            dataConvertida = new SimpleDateFormat("yyyy-MM-dd").parse(data);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
+        if(dataConvertida.compareTo(new Date()) == -1)
+            throw new RequestException("A data de validade precisa ser ao menos um dia a frente do atual!");
+
+        return dataConvertida;
+    }
+
     private Integer gerarCodigoBonusSemRepeticao(){
         Integer numero = ((int)(Math.random() * 8999) + 1000);
         while(bonusRepository.findByCodigoBonus(numero).isPresent())

@@ -18,6 +18,7 @@ public class SaqueModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long codigo;
 
+    private String usuario;
     private String dataSaque;
     private String status;
     private Double valorSaque;
@@ -25,4 +26,5 @@ public class SaqueModel {
     private String tipoChave;
     private String chave;
     private String cpfTitular;
+    private String motivoRejeicao;
 }

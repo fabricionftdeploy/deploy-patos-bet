@@ -4,6 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import patoes.bet.patoes.bet.dto.request.*;
 import patoes.bet.patoes.bet.dto.response.UsuarioResponseDTO;
@@ -35,17 +36,22 @@ public class UsuarioController {
                                             @PathVariable Double valor){
         return new ResponseEntity<>(usuarioService.adcionarPontosDeVip(codigo, valor), HttpStatus.OK);
     }
-    /*----------------------------------------------*/
-
+    /*-------------------------------------------------------------*/
+    
 
     @GetMapping
     public ResponseEntity<?> listarUsuarios(){
         return new ResponseEntity<>(converterEmListaResponseUSuario(usuarioService.listarUsuarios()), HttpStatus.OK);
     }
 
-    @GetMapping(path = "/{codigo}")
+    @GetMapping(path = "/porCodigo/{codigo}")
     public ResponseEntity<?> buscarUsuarioPorCodigo(@PathVariable Long codigo){
         return new ResponseEntity<>(converterEmUsuarioResponse(usuarioService.buscarUsuarioPorCodigo(codigo)), HttpStatus.OK);
+    }
+
+    @GetMapping(path = "/porID/{id}")
+    public ResponseEntity<?> buscarUsuarioPorID(@PathVariable Long id){
+        return new ResponseEntity<>(converterEmUsuarioResponse(usuarioService.buscarUsuarioPorID(id)), HttpStatus.OK);
     }
 
     @PostMapping
@@ -55,8 +61,13 @@ public class UsuarioController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<?> salvarUsuario(@RequestBody LoginRequestDTO loginRequest){
+    public ResponseEntity<?> fazerLogin(@RequestBody LoginRequestDTO loginRequest){
         return new ResponseEntity<>(converterEmUsuarioResponse(usuarioService.fazerLogin(loginRequest)), HttpStatus.OK);
+    }
+
+    @PostMapping(path = "/loginAdmin")
+    public ResponseEntity<?> fazerLoginComoAdmin(@RequestBody LoginAdminRequestDTO loginAdminRequest){
+        return new ResponseEntity<>(usuarioService.fazerLoginComoAdmin(loginAdminRequest), HttpStatus.OK);
     }
 
     @PutMapping(path = "/alterarRole/{codigo}/{senha}")
@@ -70,10 +81,18 @@ public class UsuarioController {
         return new ResponseEntity<>(usuarioService.alterarSenhaUsuario(alterarSenhaRequest), HttpStatus.OK);
     }
 
+    @PutMapping(path = "/bloquear/{codigo}/{acao}")
+    public ResponseEntity<?> bloquearUsuario(@PathVariable Long codigo,
+                                             @PathVariable String acao){
+        return new ResponseEntity<>(usuarioService.alterarStatusUsuario(codigo, acao), HttpStatus.OK);
+    }
+
+
     @DeleteMapping
     public ResponseEntity<?> excluirUsuarios(){
         return new ResponseEntity<>(usuarioService.excluirUsuarios(), HttpStatus.OK);
     }
+
 
     //Metódos privados
     private UsuarioResponseDTO converterEmUsuarioResponse(UsuarioModel usuario){

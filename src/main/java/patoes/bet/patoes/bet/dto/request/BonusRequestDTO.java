@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class BonusRequestDTO {
 
+    private  Long codigo;
     private String tipo;
     private Double valorBonus;
     private Integer percentualBonus;

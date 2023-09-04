@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import patoes.bet.patoes.bet.dto.request.AlterarSenhaRequestDTO;
-import patoes.bet.patoes.bet.dto.request.DepositoRequestDTO;
+import patoes.bet.patoes.bet.dto.request.LoginAdminRequestDTO;
 import patoes.bet.patoes.bet.dto.request.LoginRequestDTO;
-import patoes.bet.patoes.bet.dto.request.SaqueRequestDTO;
+import patoes.bet.patoes.bet.dto.response.LoginAdminResponsetDTO;
 import patoes.bet.patoes.bet.exception.RequestException;
 import patoes.bet.patoes.bet.model.BonusModel;
 import patoes.bet.patoes.bet.model.UsuarioModel;
@@ -31,8 +31,14 @@ public class UsuarioService {
     @Autowired
     private PasswordEncoder encoder;
 
+    @Autowired
+    private TokenService tokenService;
+
     @Value("${senha.sistema}")
     private String senhaSistema;
+
+    @Value("${senha.login.admin}")
+    private String senhaLoginAdmin;
 
 
     public List<UsuarioModel> listarUsuarios(){
@@ -41,6 +47,11 @@ public class UsuarioService {
 
     public UsuarioModel buscarUsuarioPorCodigo(Long codigo){
         return  usuarioRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RequestException("Usuário inexistente!"));
+    }
+
+    public UsuarioModel buscarUsuarioPorID(Long id){
+        return  usuarioRepository.findByID(id)
                 .orElseThrow(() -> new RequestException("Usuário inexistente!"));
     }
 
@@ -58,6 +69,7 @@ public class UsuarioService {
            BonusModel bonus = verificarValidadeDoCodigoBonus(codigoBonus, "cadastro");
            usuario.setSaldo(bonus.getValorBonus());
            usuario.setAuditoria(bonus.getValorBonus() * bonus.getMultiplicadorDeAuditoria());
+           usuario.getBonusUsados().add(bonus);
        }
 
        usuario.setDataCadastro(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
@@ -69,15 +81,50 @@ public class UsuarioService {
 
     public UsuarioModel fazerLogin(LoginRequestDTO loginRequest){
         if(verificarSenha(loginRequest.getUsuario(), loginRequest.getSenha())){
-            return  buscarUsarioPorUsername(loginRequest.getUsuario());
+            UsuarioModel usuario = buscarUsarioPorUsername(loginRequest.getUsuario());
+
+            if(usuario.getContaAtiva().equals(false))
+                throw new RequestException("Desculpe, você não pode fazer login, sua conta foi desativada por um administrador");
+
+            return usuario;
         }else throw new RequestException("Senha incorreta");
+    }
+
+    public LoginAdminResponsetDTO fazerLoginComoAdmin(LoginAdminRequestDTO loginAdminRequest){
+        if(!encoder.matches(loginAdminRequest.getSenhaSistema(), senhaSistema))
+            throw new RequestException("Senha do sistema incorreta!");
+
+        if(verificarSenha(loginAdminRequest.getUsuario(), loginAdminRequest.getSenha())){
+            UsuarioModel usuario = buscarUsarioPorUsername(loginAdminRequest.getUsuario());
+            if(!usuario.getRole().equals("ADMIN"))
+                throw new RequestException("Desculpe, sua conta não possui autorização ADMIN!");
+            return new LoginAdminResponsetDTO(
+                usuario.getRole(),
+                tokenService.gerarToken(usuario.getUsuario())
+            );
+        }else throw new RequestException("Senha incorreta");
+    }
+
+    public UsuarioModel adcionarPontosDeVip(Long codigo, Double valorApostado){
+        UsuarioModel usuario = buscarUsuarioPorCodigo(codigo);
+
+        Integer pontos = (int) (valorApostado.intValue() * 0.5);
+        usuario.setPontosAdquiridos(usuario.getPontosAdquiridos() + pontos);
+
+        while(usuario.getPontosAdquiridos() >= usuario.getPontosNecessariosParaProximoNivel() && usuario.getNivel() < 100) {
+            usuario.setPontosAdquiridos(usuario.getPontosAdquiridos() - usuario.getPontosNecessariosParaProximoNivel());
+            usuario.setPontosNecessariosParaProximoNivel(usuario.getPontosNecessariosParaProximoNivel() + 50);
+            usuario.setNivel(usuario.getNivel() + 1);
+        }
+
+        return usuarioRepository.save(usuario);
     }
 
     public UsuarioModel alterarRoleUsuario(Long codigo, String senha){
         if(encoder.matches(senha, senhaSistema)){
             UsuarioModel usuario = buscarUsuarioPorCodigo(codigo);
             usuario.setRole("ADMIN");
-            return usuario;
+            return usuarioRepository.save(usuario);
         }
         throw new RequestException("Senha do sistema incorreta!");
     }
@@ -91,29 +138,13 @@ public class UsuarioService {
         }else throw new RequestException("Senha atual incorreta!");
     }
 
-    public UsuarioModel adcionarPontosDeVip(Long codigo, Double valorApostado){
+    public UsuarioModel alterarStatusUsuario(Long codigo, String acao){
         UsuarioModel usuario = buscarUsuarioPorCodigo(codigo);
 
-        Integer pontos = (int) (valorApostado.intValue() * 0.5);
-
-        usuario.setPontosAdquiridos(usuario.getPontosAdquiridos() + pontos);
-        System.out.println("---- Inicio ---\nPontos: "+pontos+"\nNivel: "+usuario.getNivel()+"\nPontos adquiridos: "+usuario.getPontosAdquiridos()+"\nPontos necessariosa para passar: "+usuario.getPontosNecessariosParaProximoNivel());
-
-        while(usuario.getPontosAdquiridos() >= usuario.getPontosNecessariosParaProximoNivel() && usuario.getNivel() < 100) {
-            usuario.setPontosAdquiridos(usuario.getPontosAdquiridos() - usuario.getPontosNecessariosParaProximoNivel());
-            usuario.setPontosNecessariosParaProximoNivel(usuario.getPontosNecessariosParaProximoNivel() + 50);
-            usuario.setNivel(usuario.getNivel() + 1);
-
-            System.out.println("\nPontos: "+pontos+"\nNivel: "+usuario.getNivel()+"\nPontos adquiridos: "+usuario.getPontosAdquiridos()+"\nPontos necessariosa para passar: "+usuario.getPontosNecessariosParaProximoNivel());
-        }
-
-        /*usuario.setNivel(1);
-        usuario.setPontosAdquiridos(0);
-        usuario.setPontosNecessariosParaProximoNivel(100);*/
+        usuario.setContaAtiva((acao.equals("desativar")) ? false : true);
 
         return usuarioRepository.save(usuario);
     }
-
 
     public String excluirUsuarios(){
         usuarioRepository.deleteAll();

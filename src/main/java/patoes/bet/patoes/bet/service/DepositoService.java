@@ -14,6 +14,7 @@ import patoes.bet.patoes.bet.repository.UsuarioRepository;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class DepositoService {
@@ -27,12 +28,20 @@ public class DepositoService {
     @Autowired
     private BonusRepository bonusRepository;
 
+
+    public List<DepositoModel> listarDepositos(){
+        return depositoRepository.findAll();
+    }
+
     public DepositoModel buscarDepositoPorCodigo(Long codigo){
         return depositoRepository.findByCodigo(codigo)
                .orElseThrow(() -> new RequestException("Depósito inexistente!"));
     }
 
-    public UsuarioModel depositar(DepositoRequestDTO depositoRequest){
+    public UsuarioModel solicitarDeposito(DepositoRequestDTO depositoRequest){
+        if(depositoRequest.getValorDeposito() < 5)
+            throw new RequestException("Desculpe, você só pode solicitar um depósito com valor igual ou superior à 5 reais!");
+
         UsuarioModel usuario = buscarUsuarioPorCodigo(depositoRequest.getCodigoUsuario());
         Double valorComBonus = 0.0;
         Double auditoria = 0.0;
@@ -40,9 +49,15 @@ public class DepositoService {
 
         if(!depositoRequest.getCodigoBonus().equals(0) && depositoRequest.getCodigoBonus().toString().length() == 4) {
             BonusModel bonus = verificarValidadeDoCodigoBonus(depositoRequest.getCodigoBonus(), "deposito");
+
+            if(usuario.getBonusUsados().contains(bonus))
+                throw new RequestException("Desculpe, você já usou este código bônus anteriormente! Cada código bônus só pode ser usado uma vez por cada usuário.");
+
             valorComBonus = depositoRequest.getValorDeposito() + (depositoRequest.getValorDeposito() * bonus.getPercentualBonus() / 100);
             auditoria = valorComBonus * bonus.getMultiplicadorDeAuditoria();
             multiplicadorAuditoria = bonus.getMultiplicadorDeAuditoria();
+
+            usuario.getBonusUsados().add(bonus);
         }else {
             valorComBonus = depositoRequest.getValorDeposito();
             auditoria = depositoRequest.getValorDeposito();
@@ -50,22 +65,48 @@ public class DepositoService {
 
         usuario.getHistoricoDepositos().add(new DepositoModel(
             null,
+            usuario.getUsuario(),
             new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Calendar.getInstance().getTime()),
             "Solicitado",
             depositoRequest.getValorDeposito(),
             valorComBonus,
             auditoria,
             multiplicadorAuditoria,
-            depositoRequest.getCodigoBonus()
+            depositoRequest.getCodigoBonus(),
+            ""
         ));
 
         return usuarioRepository.save(usuario);
+    }
+
+    public DepositoModel autorizarDeposito(DepositoModel deposito){
+        UsuarioModel usuario = buscarUsuarioPorUsername(deposito.getUsuario());
+
+        usuario.setSaldo(usuario.getSaldo() + deposito.getValorComBonus());
+        usuario.setAuditoria(usuario.getAuditoria() + deposito.getAuditoriaNecessaria());
+
+        deposito.setStatusDeposito("Concluído");
+
+        usuarioRepository.save(usuario);
+        return depositoRepository.save(deposito);
+    }
+
+    public DepositoModel recusarDeposito(DepositoModel deposito){
+        deposito.setStatusDeposito("Recusado");
+        deposito.setMotivoRejeicao(deposito.getMotivoRejeicao());
+
+        return  depositoRepository.save(deposito);
     }
 
 
     //Métodos privados
     private UsuarioModel buscarUsuarioPorCodigo(Long codigo){
         return  usuarioRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RequestException("Usuário inexistente!"));
+    }
+
+    private UsuarioModel buscarUsuarioPorUsername(String username){
+        return  usuarioRepository.findByUsuario(username)
                 .orElseThrow(() -> new RequestException("Usuário inexistente!"));
     }
 

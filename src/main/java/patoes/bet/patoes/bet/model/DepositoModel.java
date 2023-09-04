@@ -18,6 +18,7 @@ public class DepositoModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long codigo;
 
+    private String usuario;
     private String dataDeposito;
     private String statusDeposito;
     private Double valorDeposito;
@@ -25,4 +26,5 @@ public class DepositoModel {
     private Double auditoriaNecessaria;
     private Integer multiplicadorDeAudutoria;
     private Integer codigoBonus;
+    private String motivoRejeicao;
 }
