@@ -82,6 +82,17 @@ public class DepositoService {
     public DepositoModel autorizarDeposito(DepositoModel deposito){
         UsuarioModel usuario = buscarUsuarioPorUsername(deposito.getUsuario());
 
+        if(!usuario.getConvite().equals(0L)
+           && depositoRepository.buscarDepositosBemSucedidosDeUmUsuario(usuario.getCodigo()).size() == 0
+           && deposito.getValorDeposito() >= 20){
+            UsuarioModel usuarioConvidador = buscarUsuarioPorID(usuario.getConvite());
+
+            usuarioConvidador.setSaldo(usuarioConvidador.getSaldo() + 20.0);
+            usuarioConvidador.setAuditoria(usuarioConvidador.getAuditoria() + 20.0);
+            usuarioConvidador.setQuantidadeDeUsuariosConvidados(usuarioConvidador.getQuantidadeDeUsuariosConvidados() + 1);
+            usuarioConvidador.setGanhosComConvite(usuarioConvidador.getGanhosComConvite() + 20.0);
+        }
+
         usuario.setSaldo(usuario.getSaldo() + deposito.getValorComBonus());
         usuario.setAuditoria(usuario.getAuditoria() + deposito.getAuditoriaNecessaria());
 
@@ -89,6 +100,11 @@ public class DepositoService {
 
         usuarioRepository.save(usuario);
         return depositoRepository.save(deposito);
+    }
+
+    //Excluir
+    public List<DepositoModel> teste(Long codigo){
+        return  depositoRepository.buscarDepositosBemSucedidosDeUmUsuario(codigo);
     }
 
     public DepositoModel recusarDeposito(DepositoModel deposito){
@@ -102,6 +118,11 @@ public class DepositoService {
     //Métodos privados
     private UsuarioModel buscarUsuarioPorCodigo(Long codigo){
         return  usuarioRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new RequestException("Usuário inexistente!"));
+    }
+
+    private UsuarioModel buscarUsuarioPorID(Long id){
+        return  usuarioRepository.findByID(id)
                 .orElseThrow(() -> new RequestException("Usuário inexistente!"));
     }
 

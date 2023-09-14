@@ -55,6 +55,10 @@ public class UsuarioService {
                 .orElseThrow(() -> new RequestException("Usuário inexistente!"));
     }
 
+    public Double buscarSaldoDeUmUsuarioPorCodigo(Long codigo){
+        return buscarUsuarioPorCodigo(codigo).getSaldo();
+    }
+
     //Apagar dps
     public UsuarioModel addSaldo(Long codigo, Double valor){
         UsuarioModel usuario = buscarUsuarioPorCodigo(codigo);
@@ -65,12 +69,18 @@ public class UsuarioService {
 
     public UsuarioModel salvarUsuario(UsuarioModel usuario, Integer codigoBonus){
        verificarSeOsDadosDoUsuarioNaoSeRepetem(usuario);
+
        if(!codigoBonus.equals(0) && codigoBonus.toString().length() == 4) {
            BonusModel bonus = verificarValidadeDoCodigoBonus(codigoBonus, "cadastro");
            usuario.setSaldo(bonus.getValorBonus());
            usuario.setAuditoria(bonus.getValorBonus() * bonus.getMultiplicadorDeAuditoria());
            usuario.getBonusUsados().add(bonus);
        }
+
+       if(!usuario.getConvite().equals(0L) && usuario.getConvite().toString().length() == 9){
+           if(usuarioRepository.findByID(usuario.getConvite()).isEmpty())
+               throw new RequestException("Não existe nenhum usuário com este código de convie! Altere ou apague o conteúdo deste campo para prosseguir");
+       } else usuario.setConvite(0L);
 
        usuario.setDataCadastro(new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Calendar.getInstance().getTime()));
        usuario.setID(gerarIDSemRepeticao());
@@ -96,7 +106,7 @@ public class UsuarioService {
 
         if(verificarSenha(loginAdminRequest.getUsuario(), loginAdminRequest.getSenha())){
             UsuarioModel usuario = buscarUsarioPorUsername(loginAdminRequest.getUsuario());
-            if(!usuario.getRole().equals("ADMIN"))
+            if(!usuario.getRole().equals("ROLE_ADMIN"))
                 throw new RequestException("Desculpe, sua conta não possui autorização ADMIN!");
             return new LoginAdminResponsetDTO(
                 usuario.getRole(),
@@ -105,25 +115,10 @@ public class UsuarioService {
         }else throw new RequestException("Senha incorreta");
     }
 
-    public UsuarioModel adcionarPontosDeVip(Long codigo, Double valorApostado){
-        UsuarioModel usuario = buscarUsuarioPorCodigo(codigo);
-
-        Integer pontos = (int) (valorApostado.intValue() * 0.5);
-        usuario.setPontosAdquiridos(usuario.getPontosAdquiridos() + pontos);
-
-        while(usuario.getPontosAdquiridos() >= usuario.getPontosNecessariosParaProximoNivel() && usuario.getNivel() < 100) {
-            usuario.setPontosAdquiridos(usuario.getPontosAdquiridos() - usuario.getPontosNecessariosParaProximoNivel());
-            usuario.setPontosNecessariosParaProximoNivel(usuario.getPontosNecessariosParaProximoNivel() + 50);
-            usuario.setNivel(usuario.getNivel() + 1);
-        }
-
-        return usuarioRepository.save(usuario);
-    }
-
     public UsuarioModel alterarRoleUsuario(Long codigo, String senha){
         if(encoder.matches(senha, senhaSistema)){
             UsuarioModel usuario = buscarUsuarioPorCodigo(codigo);
-            usuario.setRole("ADMIN");
+            usuario.setRole("ROLE_ADMIN");
             return usuarioRepository.save(usuario);
         }
         throw new RequestException("Senha do sistema incorreta!");

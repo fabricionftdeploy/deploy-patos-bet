@@ -20,7 +20,7 @@ public class SaqueModel {
 
     private String usuario;
     private String dataSaque;
-    private String status;
+    private String statusSaque;
     private Double valorSaque;
     private String nomeTitular;
     private String tipoChave;

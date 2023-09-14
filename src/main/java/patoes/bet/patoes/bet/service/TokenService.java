@@ -12,17 +12,17 @@ public class TokenService {
 
     public String gerarToken(String usuario){
         return JWT.create()
-                .withIssuer("cassino")
+                .withIssuer("Produtos")
                 .withSubject(usuario)
                 .withExpiresAt(LocalDateTime.now()
                         .plusDays(1)
                         .toInstant(ZoneOffset.of("-03:00"))
-                ).sign(Algorithm.HMAC256("poeira"));
+                ).sign(Algorithm.HMAC256("pretinha"));
     }
 
     public String getSubject(String token) {
-        return JWT.require(Algorithm.HMAC256("poeira"))
-                .withIssuer("cassino")
+        return JWT.require(Algorithm.HMAC256("pretinha"))
+                .withIssuer("Produtos")
                 .build().verify(token).getSubject();
     }
 }

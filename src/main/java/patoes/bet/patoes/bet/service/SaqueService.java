@@ -32,9 +32,9 @@ public class SaqueService {
         return saqueRepository.findAll();
     }
 
-    public List<SaqueModel> listarDaquesPorCodigoDeUsuario(Long codigoUsuario){
+    /*public List<SaqueModel> listarDaquesPorCodigoDeUsuario(Long codigoUsuario){
         return saqueRepository.listarSaquesPorCodigoDeUsuario(codigoUsuario);
-    }
+    }*/
 
     public SaqueModel buscarSaquePorCodigo(Long codigo){
         return  saqueRepository.findByCodigo(codigo)
@@ -78,7 +78,7 @@ public class SaqueService {
         UsuarioModel usuario = buscarUsuarioPorUsername(saque.getUsuario());
 
         usuario.setSaldoEmRetirada(usuario.getSaldoEmRetirada() - saque.getValorSaque());
-        saque.setStatus("Concluído");
+        saque.setStatusSaque("Concluído");
 
         return  saqueRepository.save(saque);
     }
@@ -89,7 +89,7 @@ public class SaqueService {
         usuario.setSaldoEmRetirada(usuario.getSaldoEmRetirada() - saque.getValorSaque());
         usuario.setSaldo(usuario.getSaldo() + saque.getValorSaque());
 
-        saque.setStatus("Recusado");
+        saque.setStatusSaque("Recusado");
         saque.setMotivoRejeicao(saque.getMotivoRejeicao());
 
         return  saqueRepository.save(saque);

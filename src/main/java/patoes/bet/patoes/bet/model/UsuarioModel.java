@@ -22,7 +22,7 @@ public class UsuarioModel implements UserDetails {
     private Long codigo;
 
     private Long ID;
-    private String role = "USER";
+    private String role = "ROLE_USER";
     private String dataCadastro;
     private Boolean contaAtiva = true;
     private String nomeCompleto;
@@ -36,6 +36,10 @@ public class UsuarioModel implements UserDetails {
     private Integer nivel = 1;
     private Integer pontosAdquiridos = 0;
     private Integer pontosNecessariosParaProximoNivel = 100;
+
+    private Long convite;
+    private Integer quantidadeDeUsuariosConvidados = 0;
+    private Double ganhosComConvite = 0.0;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "bonus_id")

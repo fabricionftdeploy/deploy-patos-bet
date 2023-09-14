@@ -14,17 +14,13 @@ public class ChavePixController {
     @Autowired
     private ChavePixService chavePixService;
 
+
     @GetMapping(path = "/{codigoUsuario}")
     public ResponseEntity<?> buscarChavesDeUmUsuario(@PathVariable Long codigoUsuario){
         return new ResponseEntity<>(chavePixService.buscarChavesDeUmUsuário(codigoUsuario), HttpStatus.OK);
     }
 
-    @GetMapping(path = "/teste/{cpf}")
-    public ResponseEntity<?> teste(@PathVariable String cpf){
-        return new ResponseEntity<>(chavePixService.buscarPorCPF(cpf), HttpStatus.OK);
-    }
-
-    @PostMapping
+   @PostMapping
     public ResponseEntity<?> salvarChaveDeUmUsuario(@RequestBody ChavePixRequestDTO chavePixRequest){
         return new ResponseEntity<>(chavePixService.salvarChaveParaUmUSuario(chavePixRequest), HttpStatus.CREATED);
     }

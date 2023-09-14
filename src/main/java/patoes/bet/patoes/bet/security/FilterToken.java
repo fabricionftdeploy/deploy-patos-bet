@@ -32,7 +32,7 @@ public class FilterToken extends OncePerRequestFilter {
         String token;
         var authorization = request.getHeader("Authorization");
 
-        //try {
+        try {
             if (authorization != null) {
                 token = authorization.replace("Bearer ", "");
 
@@ -44,9 +44,9 @@ public class FilterToken extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
-        /*}
+        }
         catch (TokenExpiredException e){
-        }*/
+        }
 
         filterChain.doFilter(request, response);
     }

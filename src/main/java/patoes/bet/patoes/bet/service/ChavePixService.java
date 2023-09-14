@@ -21,7 +21,6 @@ public class ChavePixService {
     private UsuarioRepository usuarioRepository;
 
 
-
     public List<ChavePixModel> buscarChavesDeUmUsuário(Long codigoUsuario){
         return  chavePixRepository.buscarChavesPorCodigoDeUsuario(codigoUsuario);
     }
@@ -48,11 +47,6 @@ public class ChavePixService {
 
         return usuarioRepository.save(usuario);
     }
-
-    public Boolean buscarPorCPF(String cpf){
-        return  usuarioRepository.buscarUsuarioPorCPFDeChavePix(cpf).isEmpty();
-    }
-
 
     //Metódos privados
     public UsuarioModel buscarUsuarioPorCodigo(Long codigo){

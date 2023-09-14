@@ -1,8 +1,5 @@
 package patoes.bet.patoes.bet.dto.response;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
 import patoes.bet.patoes.bet.model.BonusModel;
@@ -29,8 +26,11 @@ public class UsuarioResponseDTO {
     private Double saldoEmRetirada;
     private Double auditoria;
     private Integer nivel;
-    private Integer pontosAdquiridos = 0;
-    private Integer pontosNecessariosParaProximoNivel = 100;
+    private Integer pontosAdquiridos;
+    private Integer pontosNecessariosParaProximoNivel;
+    private Long convite;
+    private Integer quantidadeDeUsuariosConvidados;
+    private Double ganhosComConvite;
     private List<BonusModel> bonusUsados;
     private List<ChavePixModel> chaves;
     private List<DepositoModel> historicoDepositos;

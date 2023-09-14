@@ -13,4 +13,5 @@ public class CadastroRequestDTO {
     private String celular;
     private String cpf;
     private Integer codigoBonus;
+    private Long convite;
 }

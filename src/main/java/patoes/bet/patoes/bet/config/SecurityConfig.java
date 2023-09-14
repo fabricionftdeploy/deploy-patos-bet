@@ -3,7 +3,6 @@ package patoes.bet.patoes.bet.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -17,7 +16,7 @@ import patoes.bet.patoes.bet.security.FilterToken;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -37,13 +36,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return  http.csrf().disable()
-        .authorizeHttpRequests(
-            authorizeConfig -> {
-                authorizeConfig.and().addFilterBefore(filterToken, UsernamePasswordAuthenticationFilter.class);
+                .authorizeHttpRequests(
+                        authorizeConfig -> {
+                            authorizeConfig
+                            //.requestMatchers(HttpMethod.PUT, "/usuarios/alterarRole/**").authenticated()
+                            .and().addFilterBefore(filterToken, UsernamePasswordAuthenticationFilter.class);
 
-                authorizeConfig.anyRequest().permitAll();
-            }
-        ).build();
+                            authorizeConfig.anyRequest().permitAll();
+                        }
+                ).build();
     }
 
 }

@@ -26,20 +26,16 @@ public class UsuarioController {
 
     //Metódos de teste
     @PostMapping(path = "/teste/{codigo}/{valor}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addSaldo(@PathVariable Long codigo,
                                       @PathVariable Double valor){
         return new ResponseEntity<>(converterEmUsuarioResponse(usuarioService.addSaldo(codigo, valor)), HttpStatus.CREATED);
     }
-
-    @PostMapping(path = "/pontos/{codigo}/{valor}")
-    public ResponseEntity<?> adcionarPontos(@PathVariable Long codigo,
-                                            @PathVariable Double valor){
-        return new ResponseEntity<>(usuarioService.adcionarPontosDeVip(codigo, valor), HttpStatus.OK);
-    }
-    /*-------------------------------------------------------------*/
+    /*-----------------------------------------------------------*/
     
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> listarUsuarios(){
         return new ResponseEntity<>(converterEmListaResponseUSuario(usuarioService.listarUsuarios()), HttpStatus.OK);
     }
@@ -52,6 +48,11 @@ public class UsuarioController {
     @GetMapping(path = "/porID/{id}")
     public ResponseEntity<?> buscarUsuarioPorID(@PathVariable Long id){
         return new ResponseEntity<>(converterEmUsuarioResponse(usuarioService.buscarUsuarioPorID(id)), HttpStatus.OK);
+    }
+
+    @GetMapping("/saldo/{codigo}")
+    public ResponseEntity<?> buscarSaldoDeUmUsuarioPorCodigo(@PathVariable Long codigo){
+        return new ResponseEntity<>(usuarioService.buscarSaldoDeUmUsuarioPorCodigo(codigo), HttpStatus.OK);
     }
 
     @PostMapping
@@ -82,13 +83,14 @@ public class UsuarioController {
     }
 
     @PutMapping(path = "/bloquear/{codigo}/{acao}")
-    public ResponseEntity<?> bloquearUsuario(@PathVariable Long codigo,
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> alterarStatusUsuario(@PathVariable Long codigo,
                                              @PathVariable String acao){
         return new ResponseEntity<>(usuarioService.alterarStatusUsuario(codigo, acao), HttpStatus.OK);
     }
 
-
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> excluirUsuarios(){
         return new ResponseEntity<>(usuarioService.excluirUsuarios(), HttpStatus.OK);
     }
