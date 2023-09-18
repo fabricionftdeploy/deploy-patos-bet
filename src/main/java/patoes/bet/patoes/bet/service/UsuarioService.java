@@ -59,14 +59,6 @@ public class UsuarioService {
         return buscarUsuarioPorCodigo(codigo).getSaldo();
     }
 
-    //Apagar dps
-    public UsuarioModel addSaldo(Long codigo, Double valor){
-        UsuarioModel usuario = buscarUsuarioPorCodigo(codigo);
-
-        usuario.setSaldo(usuario.getSaldo() + valor);
-        return usuarioRepository.save(usuario);
-    }
-
     public UsuarioModel salvarUsuario(UsuarioModel usuario, Integer codigoBonus){
        verificarSeOsDadosDoUsuarioNaoSeRepetem(usuario);
 
@@ -139,11 +131,6 @@ public class UsuarioService {
         usuario.setContaAtiva((acao.equals("desativar")) ? false : true);
 
         return usuarioRepository.save(usuario);
-    }
-
-    public String excluirUsuarios(){
-        usuarioRepository.deleteAll();
-        return "Usuários excluidos com sucesso!";
     }
 
     

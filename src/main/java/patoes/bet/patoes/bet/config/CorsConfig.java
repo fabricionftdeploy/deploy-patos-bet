@@ -12,7 +12,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOrigins(
                     "http://localhost:5173",
-                    "https://73db-2804-868-d048-5aa2-6f1a-90c2-b1b8-b2e6.ngrok-free.app/"
+                    "https://48c9-2804-868-d048-5aa2-6f1a-90c2-b1b8-b2e6.ngrok-free.app/"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT");
     }

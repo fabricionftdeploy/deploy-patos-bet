@@ -23,15 +23,6 @@ public class UsuarioController {
 
     @Autowired
     private ModelMapper modelMapper;
-
-    //Metódos de teste
-    @PostMapping(path = "/teste/{codigo}/{valor}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> addSaldo(@PathVariable Long codigo,
-                                      @PathVariable Double valor){
-        return new ResponseEntity<>(converterEmUsuarioResponse(usuarioService.addSaldo(codigo, valor)), HttpStatus.CREATED);
-    }
-    /*-----------------------------------------------------------*/
     
 
     @GetMapping
@@ -87,12 +78,6 @@ public class UsuarioController {
     public ResponseEntity<?> alterarStatusUsuario(@PathVariable Long codigo,
                                              @PathVariable String acao){
         return new ResponseEntity<>(usuarioService.alterarStatusUsuario(codigo, acao), HttpStatus.OK);
-    }
-
-    @DeleteMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> excluirUsuarios(){
-        return new ResponseEntity<>(usuarioService.excluirUsuarios(), HttpStatus.OK);
     }
 
 
